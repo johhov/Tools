@@ -6,7 +6,16 @@
 #include "Barrier.hpp"
 
 Barrier::Barrier() {
-	//flag = ATOMIC_VAR_INIT(0);
+	maxWaitingThreads = 0;
+	waitingThreads = 0;
+	//flag = false;
+}
+
+Barrier::Barrier(int maxThreads) {
+	maxWaitingThreads = maxThreads;
+	
+	waitingThreads = 0;
+	//flag = false;
 }
 
 Barrier::~Barrier() {
@@ -14,13 +23,27 @@ Barrier::~Barrier() {
 }
 
 void Barrier::wait() {
+	if(maxWaitingThreads > 0){
+		waitingThreads++;
+		if(waitingThreads >= maxWaitingThreads) {
+			signal();
+			waitingThreads--;
+			std::atomic_thread_fence(std::memory_order_acquire);
+			return;
+		}
+	}
+
 	std::unique_lock<std::mutex> l(lock);
 	cv.wait(l);
 
 	std::atomic_thread_fence(std::memory_order_acquire);
+
+	if(maxWaitingThreads){
+		waitingThreads--;
+	}
 }
 /*
-bool Barrier::waitFor(int waitForMs) {
+bool Barrier::waitUntil(int waitForMs) {
 	flag = false;
 	std::unique_lock<std::mutex> l(lock);
 	auto now = std::chrono::system_clock::now();
@@ -35,7 +58,6 @@ bool Barrier::waitFor(int waitForMs) {
 void Barrier::signal() {
 	//flag = true;
 	
-	cv.notify_all();
-
 	std::atomic_thread_fence(std::memory_order_release);
+	cv.notify_all();
 }
