@@ -34,8 +34,8 @@ void Barrier::wait() {
 		}
 	}
 
-	std::unique_lock<std::mutex> l(lock);
-	cv.wait(l);
+		std::unique_lock<std::mutex> l(lock);
+		cv.wait(l);
 
 	std::atomic_thread_fence(std::memory_order_acquire);
 
