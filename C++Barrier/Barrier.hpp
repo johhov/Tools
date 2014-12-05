@@ -28,7 +28,8 @@ public:
 	void wait();
 
 	/*
-	*	Waits for a signal or for a number of milliseconds
+	*	Waits for a signal, a number of milliseconds or untill
+	*	maxWaitingThreads number of threads reach the barrier,
 	*	which ever comes first.
 	*
 	*	Returns true on signal, false on timeout.				
