@@ -1,5 +1,6 @@
-/*	C++ 11 Thread barrier class
-*	Written by Henrik Lee Jotun and Johannes Hovland
+/*	
+*	C++ 11 Thread barrier class
+*	Written by Johannes Hovland (johannes.hovland@gmail.com)
 *	2014.12.05
 */
 
@@ -8,15 +9,14 @@
 Barrier::Barrier() {
 	maxWaitingThreads = 0;
 	waitingThreads = 0;
-	//flag = false;
+	signalSent = false;
 }
 
 Barrier::Barrier(int maxThreads) {
 	maxWaitingThreads = maxThreads;
 	
 	waitingThreads = 0;
-	//flag = false;
-	//flag = false;
+	signalSent = false;
 }
 
 Barrier::~Barrier() {
@@ -24,18 +24,14 @@ Barrier::~Barrier() {
 }
 
 void Barrier::wait() {
-	if(maxWaitingThreads > 0){
-		waitingThreads++;
-		if(waitingThreads >= maxWaitingThreads) {
-			signal();
-			waitingThreads--;
-			std::atomic_thread_fence(std::memory_order_acquire);
-			return;
-		}
+	if(checkForMaxWaitingThreads()) {
+		waitingThreads--;
+		signal();
+		return;
 	}
 
-		std::unique_lock<std::mutex> l(lock);
-		cv.wait(l);
+	std::unique_lock<std::mutex> l(lock);
+	cv.wait(l);
 
 	std::atomic_thread_fence(std::memory_order_acquire);
 
@@ -43,22 +39,43 @@ void Barrier::wait() {
 		waitingThreads--;
 	}
 }
-/*
+
 bool Barrier::waitUntil(int waitForMs) {
-	flag = false;
+	signalSent = false;
+
+	if(checkForMaxWaitingThreads()) {
+		waitingThreads--;
+		signal();
+		return signalSent;
+	}
+
 	std::unique_lock<std::mutex> l(lock);
 	auto now = std::chrono::system_clock::now();
-	
-	cv.wait_until(l, now + std::chrono::milliseconds(waitFor), [&](){return flag;});
+	cv.wait_until(l, (now + std::chrono::milliseconds(waitForMs)), [&](){return signalSent;});
 
 	std::atomic_thread_fence(std::memory_order_acquire);
 
-	return flag;
+	if(maxWaitingThreads) {
+		waitingThreads--;
+	}
+
+	return signalSent;
 }
-*/
+
 void Barrier::signal() {
-	//flag = true;
-	
+	signalSent = true;
 	std::atomic_thread_fence(std::memory_order_release);
 	cv.notify_all();
+}
+
+bool Barrier::checkForMaxWaitingThreads() {
+	if(maxWaitingThreads > 0){
+		waitingThreads++;
+
+		if(waitingThreads >= maxWaitingThreads) {
+			return true;
+		}
+	}
+
+	return false;
 }
