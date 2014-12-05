@@ -15,10 +15,13 @@ public:
 	Barrier();
 	~Barrier();
 
-	//Waits for a single
+	//Waits for a signal
 	void wait();
-	//Waits for a single or some duration. Returns true on signal, false on timeout.				
-	//bool waitFor(int waitForMs);
+
+	//Waits for a signal or some duration. Returns true on signal, false on timeout.				
+	//bool waitUntil(int waitForMs);
+
+	//Sends a signal allowing other threads to continue
 	void signal();
 
 private:
