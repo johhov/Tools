@@ -6,16 +6,24 @@
 #include "Barrier.hpp"
 
 Barrier::Barrier() {
+<<<<<<< HEAD
+=======
+
+>>>>>>> dd57972ae4c24691a94c7ccca749a1fd0a6841aa
 	maxWaitingThreads = 0;
 	waitingThreads = 0;
 	//flag = false;
 }
 
+<<<<<<< HEAD
 Barrier::Barrier(int maxThreads) {
 	maxWaitingThreads = maxThreads;
+=======
+Barrier::Barrier(int maxWaitingThreads) {
+	this.maxWaitingThreads = maxWaitingThreads;
+>>>>>>> dd57972ae4c24691a94c7ccca749a1fd0a6841aa
 	
 	waitingThreads = 0;
-	//flag = false;
 	//flag = false;
 }
 
@@ -26,6 +34,7 @@ Barrier::~Barrier() {
 void Barrier::wait() {
 	if(maxWaitingThreads > 0){
 		waitingThreads++;
+<<<<<<< HEAD
 		if(waitingThreads >= maxWaitingThreads) {
 			signal();
 			waitingThreads--;
@@ -36,10 +45,20 @@ void Barrier::wait() {
 
 	std::unique_lock<std::mutex> l(lock);
 	cv.wait(l);
+=======
+
+		if(waitingThreads >= maxWaitingThreads) {
+			signal();
+		}
+	} else {
+		std::unique_lock<std::mutex> l(lock);
+		cv.wait(l);
+	}
+>>>>>>> dd57972ae4c24691a94c7ccca749a1fd0a6841aa
 
 	std::atomic_thread_fence(std::memory_order_acquire);
 
-	if(maxWaitingThreads) {
+	if(maxWaitingThreads){
 		waitingThreads--;
 	}
 }
